@@ -13,11 +13,14 @@ interface PlanContextType {
   plan: Workout[];
   saved: Workout[];
   completedIds: number[];
+  activeTab: "plan" | "saved";
+  setActiveTab: (tab: "plan" | "saved") => void;
   isHydrated: boolean;
   addToPlan: (workout: Workout) => boolean;
   removeFromPlan: (id: number) => void;
   addToSaved: (workout: Workout) => boolean;
   removeFromSaved: (id: number) => void;
+  toggleSaved: (workout: Workout) => void;
   markAsDone: (id: number) => void;
   isCompleted: (id: number) => boolean;
   isInPlan: (id: number) => boolean;
@@ -35,6 +38,7 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [plan, setPlan] = useState<Workout[]>([]);
   const [saved, setSaved] = useState<Workout[]>([]);
   const [completedIds, setCompletedIds] = useState<number[]>([]);
+  const [activeTab, setActiveTab] = useState<"plan" | "saved">("plan");
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -93,9 +97,20 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [removeToast]
   );
 
-  const isInPlan = useCallback((id: number) => plan.some((w) => w.id === id), [plan]);
-  const isSaved = useCallback((id: number) => saved.some((w) => w.id === id), [saved]);
-  const isCompleted = useCallback((id: number) => completedIds.includes(id), [completedIds]);
+  const isInPlan = useCallback(
+    (id: number) => plan.some((w) => Number(w.id) === Number(id)),
+    [plan]
+  );
+
+  const isSaved = useCallback(
+    (id: number) => saved.some((w) => Number(w.id) === Number(id)),
+    [saved]
+  );
+
+  const isCompleted = useCallback(
+    (id: number) => completedIds.some((itemId) => Number(itemId) === Number(id)),
+    [completedIds]
+  );
 
   const addToPlan = useCallback(
     (workout: Workout): boolean => {
@@ -116,10 +131,13 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const removeFromPlan = useCallback(
     (id: number) => {
-      const target = plan.find((w) => w.id === id);
-      setPlan((prev) => prev.filter((w) => w.id !== id));
-      setCompletedIds((prev) => prev.filter((item) => item !== id));
-      showToast(target ? `Removed "${target.name}" from today's plan` : "Removed workout from plan", "info");
+      const target = plan.find((w) => Number(w.id) === Number(id));
+      setPlan((prev) => prev.filter((w) => Number(w.id) !== Number(id)));
+      setCompletedIds((prev) => prev.filter((itemId) => Number(itemId) !== Number(id)));
+      showToast(
+        target ? `Removed "${target.name}" from today's plan` : "Removed workout from plan",
+        "info"
+      );
     },
     [plan, showToast]
   );
@@ -139,23 +157,37 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const removeFromSaved = useCallback(
     (id: number) => {
-      const target = saved.find((w) => w.id === id);
-      setSaved((prev) => prev.filter((w) => w.id !== id));
+      const target = saved.find((w) => Number(w.id) === Number(id));
+      setSaved((prev) => prev.filter((w) => Number(w.id) !== Number(id)));
       showToast(target ? `Removed "${target.name}" from saved` : "Removed workout from saved", "info");
     },
     [saved, showToast]
   );
 
+  const toggleSaved = useCallback(
+    (workout: Workout) => {
+      if (isSaved(workout.id)) {
+        removeFromSaved(workout.id);
+      } else {
+        addToSaved(workout);
+      }
+    },
+    [isSaved, removeFromSaved, addToSaved]
+  );
+
   const markAsDone = useCallback(
     (id: number) => {
-      const target = plan.find((w) => w.id === id);
+      const target = plan.find((w) => Number(w.id) === Number(id));
       setCompletedIds((prev) => {
-        if (prev.includes(id)) {
+        if (prev.some((itemId) => Number(itemId) === Number(id))) {
           showToast(target ? `Marked "${target.name}" as pending` : "Marked as pending", "info");
-          return prev.filter((item) => item !== id);
+          return prev.filter((itemId) => Number(itemId) !== Number(id));
         } else {
-          showToast(target ? `Completed "${target.name}"! Great work!` : "Workout marked as completed!", "success");
-          return [...prev, id];
+          showToast(
+            target ? `Completed "${target.name}"! Great work!` : "Workout marked as completed!",
+            "success"
+          );
+          return [...prev, Number(id)];
         }
       });
     },
@@ -168,11 +200,14 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children
         plan,
         saved,
         completedIds,
+        activeTab,
+        setActiveTab,
         isHydrated,
         addToPlan,
         removeFromPlan,
         addToSaved,
         removeFromSaved,
+        toggleSaved,
         markAsDone,
         isCompleted,
         isInPlan,

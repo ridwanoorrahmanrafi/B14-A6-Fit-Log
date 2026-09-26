@@ -5,23 +5,26 @@ import { usePlan } from "@/context/PlanContext";
 import { Dumbbell, Clock, Flame } from "lucide-react";
 
 export const PlanMetricsSummary: React.FC = () => {
-  const { plan, isHydrated } = usePlan();
+  const { plan, saved, activeTab, isHydrated } = usePlan();
 
   const metrics = useMemo(() => {
     if (!isHydrated) {
       return { exercises: 0, minutes: 0, calories: 0 };
     }
-    const exercises = plan.length;
-    const minutes = plan.reduce((acc, curr) => acc + (curr.duration || 0), 0);
-    const calories = plan.reduce((acc, curr) => acc + (curr.caloriesBurned || 0), 0);
+    const currentList = activeTab === "saved" ? saved : plan;
+    const exercises = currentList.length;
+    const minutes = currentList.reduce((acc, curr) => acc + (curr.duration || 0), 0);
+    const calories = currentList.reduce((acc, curr) => acc + (curr.caloriesBurned || 0), 0);
     return { exercises, minutes, calories };
-  }, [plan, isHydrated]);
+  }, [plan, saved, activeTab, isHydrated]);
+
+  const isSavedTab = activeTab === "saved";
 
   const cards = [
     {
-      label: "Exercises",
+      label: isSavedTab ? "Saved Lifts" : "Exercises",
       value: `${metrics.exercises}`,
-      sub: "of 5 lifts cap",
+      sub: isSavedTab ? "total saved workouts" : "of 5 lifts cap",
       icon: Dumbbell,
       color: "text-[#ccff00]",
       bg: "bg-[#ccff00]/10",
@@ -30,7 +33,7 @@ export const PlanMetricsSummary: React.FC = () => {
     {
       label: "Minutes",
       value: `${metrics.minutes}`,
-      sub: "total training time",
+      sub: isSavedTab ? "saved routine time" : "total training time",
       icon: Clock,
       color: "text-sky-400",
       bg: "bg-sky-500/10",
@@ -39,7 +42,7 @@ export const PlanMetricsSummary: React.FC = () => {
     {
       label: "Calories",
       value: `${metrics.calories}`,
-      sub: "estimated energy burn",
+      sub: isSavedTab ? "saved energy burn" : "estimated energy burn",
       icon: Flame,
       color: "text-orange-400",
       bg: "bg-orange-500/10",

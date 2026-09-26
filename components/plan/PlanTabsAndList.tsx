@@ -1,15 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { usePlan } from "@/context/PlanContext";
 import { PlanItemCard } from "./PlanItemCard";
 import { Dumbbell, Bookmark, ArrowRight, Loader2, Search } from "lucide-react";
 
 export const PlanTabsAndList: React.FC = () => {
-  const { plan, saved, isHydrated } = usePlan();
-  const [activeTab, setActiveTab] = useState<"plan" | "saved">("plan");
+  const { plan, saved, activeTab, setActiveTab, isHydrated } = usePlan();
   const [filterQuery, setFilterQuery] = useState("");
+  const searchParams = useSearchParams();
+
+  // Sync tab with URL query parameter ?tab=saved or ?tab=plan
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "saved") {
+      setActiveTab("saved");
+    } else if (tabParam === "plan") {
+      setActiveTab("plan");
+    }
+  }, [searchParams, setActiveTab]);
 
   if (!isHydrated) {
     return (
@@ -31,6 +42,15 @@ export const PlanTabsAndList: React.FC = () => {
       w.muscleGroups.some((m) => m.toLowerCase().includes(filterQuery.toLowerCase()))
   );
 
+  const handleTabChange = (tab: "plan" | "saved") => {
+    setActiveTab(tab);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", tab);
+      window.history.replaceState(null, "", url.toString());
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Sub-navigation Tabs & Search */}
@@ -39,8 +59,8 @@ export const PlanTabsAndList: React.FC = () => {
         <div className="flex items-center gap-2">
           {/* Today's Plan Tab */}
           <button
-            onClick={() => setActiveTab("plan")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-heading font-black text-sm tracking-wider uppercase transition-all ${
+            onClick={() => handleTabChange("plan")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-heading font-black text-sm tracking-wider uppercase transition-all cursor-pointer ${
               activeTab === "plan"
                 ? "bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.25)]"
                 : "bg-[#15171d] text-zinc-400 hover:text-white hover:bg-zinc-800"
@@ -59,8 +79,8 @@ export const PlanTabsAndList: React.FC = () => {
 
           {/* Saved Tab */}
           <button
-            onClick={() => setActiveTab("saved")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-heading font-black text-sm tracking-wider uppercase transition-all ${
+            onClick={() => handleTabChange("saved")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-heading font-black text-sm tracking-wider uppercase transition-all cursor-pointer ${
               activeTab === "saved"
                 ? "bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.25)]"
                 : "bg-[#15171d] text-zinc-400 hover:text-white hover:bg-zinc-800"
@@ -78,7 +98,7 @@ export const PlanTabsAndList: React.FC = () => {
           </button>
         </div>
 
-        {/* Optional Search within Tab */}
+        {/* Search within Tab */}
         {currentList.length > 0 && (
           <div className="relative max-w-xs w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />

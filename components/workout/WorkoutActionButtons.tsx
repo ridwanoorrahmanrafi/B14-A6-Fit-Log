@@ -10,7 +10,7 @@ interface WorkoutActionButtonsProps {
 }
 
 export const WorkoutActionButtons: React.FC<WorkoutActionButtonsProps> = ({ workout }) => {
-  const { addToPlan, addToSaved, isInPlan, isSaved, plan } = usePlan();
+  const { addToPlan, toggleSaved, isInPlan, isSaved, plan } = usePlan();
 
   const inPlan = isInPlan(workout.id);
   const saved = isSaved(workout.id);
@@ -27,7 +27,7 @@ export const WorkoutActionButtons: React.FC<WorkoutActionButtonsProps> = ({ work
             ? "bg-[#ccff00]/20 text-[#ccff00] border border-[#ccff00]/40 cursor-default"
             : isCapReached
             ? "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700"
-            : "bg-[#ccff00] hover:bg-[#b8e600] text-black hover:-translate-y-0.5 active:translate-y-0 shadow-[0_0_20px_rgba(204,255,0,0.25)]"
+            : "bg-[#ccff00] hover:bg-[#b8e600] text-black hover:-translate-y-0.5 active:translate-y-0 shadow-[0_0_20px_rgba(204,255,0,0.25)] cursor-pointer"
         }`}
         title={isCapReached ? "Daily plan cap of 5 lifts reached" : "Add to today's plan"}
       >
@@ -44,15 +44,15 @@ export const WorkoutActionButtons: React.FC<WorkoutActionButtonsProps> = ({ work
         )}
       </button>
 
-      {/* Secondary CTA: Save for later */}
+      {/* Secondary CTA: Save for later (toggles save/unsave) */}
       <button
-        onClick={() => addToSaved(workout)}
-        disabled={saved}
-        className={`flex-1 flex items-center justify-center gap-2.5 font-bold text-sm sm:text-base py-3.5 px-6 rounded-xl border transition-all duration-200 ${
+        onClick={() => toggleSaved(workout)}
+        className={`flex-1 flex items-center justify-center gap-2.5 font-bold text-sm sm:text-base py-3.5 px-6 rounded-xl border transition-all duration-200 cursor-pointer ${
           saved
-            ? "bg-zinc-800/80 border-zinc-600 text-zinc-400 cursor-default"
+            ? "bg-[#ccff00]/15 border-[#ccff00]/40 text-[#ccff00] hover:bg-zinc-800 hover:text-zinc-300"
             : "bg-[#1b1f28] hover:bg-[#222630] border-zinc-700 hover:border-zinc-500 text-white hover:-translate-y-0.5 active:translate-y-0"
         }`}
+        title={saved ? "Click to remove from saved" : "Save for later"}
       >
         {saved ? (
           <>

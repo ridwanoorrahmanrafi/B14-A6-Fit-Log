@@ -1,167 +1,177 @@
-# 💪 B14-A6-Fit Log
+# 🏋️ FitLog — Train With Intent. Log Every Set.
 
---- 
+FitLog is a dark, high-performance gym companion web application built with **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS**, and **DaisyUI**. It empowers fitness enthusiasts to explore curated lifts, schedule a targeted 5-lift daily plan, calculate live training metrics (exercises, minutes, calories burned), track completed exercises, and save workouts for future sessions.
 
-## 📅 Deadline For 60 marks: 26 September | ⏱️11:59PM
-## 📅 Deadline For 50 marks: 27 September | ⏱️11:59PM
-## 📅 Deadline for 30 marks: Any time after 27 September 2026
+---
 
---- 
-# API's 
+## 🚀 Live Demo & Repository
+- **Live Demo Link:** [https://fitlog-app.vercel.app](https://fitlog-app.vercel.app) *(Replace with your deployed URL)*
+- **GitHub Repository:** [https://github.com/your-username/fitlog](https://github.com/your-username/fitlog) *(Replace with your repo URL)*
 
-Fitlog Api:
-All data:
-https://api.abcz.workers.dev/api/fitlog
+---
 
+## 🛠️ Technologies Used
+- **Framework:** [Next.js 15 (App Router)](https://nextjs.org/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/) (Strict mode, full type-safety)
+- **Styling:** [Tailwind CSS 3](https://tailwindcss.com/) & [DaisyUI 4](https://daisyui.com/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **Typography:** Google Fonts ([Oswald](https://fonts.google.com/specimen/Oswald) for uppercase gym display headings, [Inter](https://fonts.google.com/specimen/Inter) for clean body text)
+- **State & Storage:** React Context API + LocalStorage persistence (SSR hydration-safe)
+- **Data Source:** [FitLog Worker API](https://api.abcz.workers.dev/api/fitlog) with automated resilient fallback
 
-Details/Single Data:
-https://api.abcz.workers.dev/api/fitlog/:id
+---
 
---- 
+## ✨ 5 Key Features
 
-## 🐣 Basic Requirements (Must Do for Everyone)
-- Your app must work on all screen sizes — mobile, tablet, and desktop
-- Make at least 8 Git commits with clear, meaningful messages (e.g., "added to today's plan card component")
-- Your app must run without any errors after deployment
-- Add a nice README.md file with your project name, description, technologies used, and features(minimum 5)
+### 1. ⚡ Dynamic Workout Library with Multi-Criteria Sorting & Live Search
+- Displays 12 major lifts covering every muscle group in an ultra-responsive 3x4 grid on desktop, scaling smoothly to mobile and tablet.
+- **Challenge C1 Implemented:** Custom **"Sort By"** dropdown allowing instant client-side sorting by **Duration** (fastest to longest), **Calories** (highest burn first), or **Rating** (top-rated first).
+- Instant live search by workout title, targeted muscle group, or required equipment with one-click category filtering pills (Chest, Arms, Legs, Core, etc.).
 
---- 
+### 2. 📋 Daily 5-Lift Routine System & Live Metrics Dashboard
+- Enforces a practical **cap of 5 lifts per day** to maximize workout intensity and prevent overtraining.
+- **Live Metrics Summary Row:** Dynamically calculates:
+  - **Exercises Count:** Shows scheduled lifts vs. the 5-lift cap.
+  - **Total Minutes:** Live summation of estimated workout duration.
+  - **Total Calories Burned:** Live summation of projected energy expenditure.
+- Values start at 0 and update immediately in real-time as lifts are added or removed.
 
+### 3. ✅ Interactive Plan Log with "Mark as Done" & Fast Removal (Challenge C3)
+- Dedicated `/my-plan` page with smooth tab switching between **Today's Plan** and **Saved Workouts**.
+- **Mark as Done:** Click the check button to mark any workout completed, updating its visual state with a completion badge, subtle green border, and strike-through text, paired with an interactive toast notification.
+- **One-Click Removal (X):** Cleanly remove workouts from either the daily plan or saved list with instant toast feedback.
+- Contextual empty states with direct CTA back to the workout library when no exercises are scheduled.
 
-# 🔧 Main Requirements — 50 Marks
+### 4. 🧭 Deep Workout Inspection & Dual Action Workflow
+- Individual workout dynamic detail pages (`/workout/[id]`) with a clean two-column layout:
+  - **Left Column:** High-resolution exercise visual media with category tag pills and floating stat badges.
+  - **Right Column:** Full exercise description, structured **Key Specs Panel** (Equipment, Difficulty, Sets, Reps, Duration, Calories, Rating), and a numbered 4-step instruction sequence.
+- **Dual CTAs:**
+  - *"Add to today's plan"*: Automatically registers the workout to Today's Plan, enforces the 5-lift cap, increments the navbar badge, and alerts the user via animated toasts.
+  - *"Save for later"*: Archives the exercise in the Saved tab for future training planning.
 
+### 5. 🏷️ Real-Time Navbar Badges & Safe LocalStorage Persistence
+- Sticky header featuring an active-route navigation indicator and real-time status badges:
+  - **Plan Badge:** Filled pill with accent volt/lime styling (`#ccff00`) displaying live count of today's lifts.
+  - **Saved Badge:** Sleek outlined pill displaying total saved lifts.
+- Both badges link directly to `/my-plan`.
+- **LocalStorage Sync:** All scheduled exercises, saved routines, and completion states survive browser reloads and tab closures without hydration mismatches.
 
-### 1. 🔝 Navbar
+---
 
+## 🏛️ Architecture: Server vs. Client Component Separation
 
-- Design the Navbar exactly like the Figma design
-- Put your logo on the left side
-- Put your navigation links on the middle — links are: Workout, My Plan
-- The active page link should look different (highlighted), just like the Figma design
-- **Right-side status badges (counters)**: a "Plan" badge and a "Saved" badge, each showing a number.
-  - Plan badge = filled pill with accent background (e.g. `#ccff00`).
-  - Saved badge = pill with outline/border only.
---- 
+Following strict Next.js App Router best practices, client-side interactivity (`"use client"`) is isolated to interactive leaves while pages and layouts remain Server Components for maximum speed, SEO, and lightweight bundle delivery:
 
+| Component / File | Type | Purpose |
+|---|---|---|
+| `app/layout.tsx` | **Server Component** | Global layout, Google Fonts (Oswald & Inter), PlanProvider wrapper, footer |
+| `app/page.tsx` | **Server Component** | Prerenders Hero Section & fetches all workout data from API |
+| `app/workout/[id]/page.tsx` | **Server Component** | Prerenders workout details, specs table, and instructions via `generateStaticParams` |
+| `app/my-plan/page.tsx` | **Server Component** | Page skeleton for plan header and subtitle |
+| `components/layout/Navbar.tsx` | **Server Component** | Brand logo and layout container |
+| `components/layout/NavbarNavLinks.tsx` | **Client Component** | Active route tracking (`usePathname()`) |
+| `components/layout/NavbarBadges.tsx` | **Client Component** | Live badge count subscribers |
+| `components/home/HeroCtaButton.tsx` | **Client Component** | Smooth scroll anchor handler to `#library` |
+| `components/home/LibraryGrid.tsx` | **Client Component** | Real-time sorting, search filtering, and responsive grid |
+| `components/workout/WorkoutActionButtons.tsx` | **Client Component** | Plan / Saved trigger buttons with toast hooks |
+| `components/plan/PlanMetricsSummary.tsx` | **Client Component** | Live reactive calculations for exercises, minutes, and calories |
+| `components/plan/PlanTabsAndList.tsx` | **Client Component** | Tab switching, search filtering, and list rendering |
+| `components/plan/PlanItemCard.tsx` | **Client Component** | Mark as Done, Remove (X), and status toggle actions |
+| `components/ui/ToastContainer.tsx` | **Client Component** | Fixed floating toast alerts container |
 
-### 2. 🅱️ Hero / Banner (Top of the Home page)
-- Eyebrow text: **"WORKOUT LIBRARY"**.
-- Main heading: **"TRAIN WITH INTENT. LOG EVERY SET."** (uppercase, bold display font, e.g. Oswald).
-- Subtitle: *"FitLog is a dark, no-nonsense gym companion: pick a lift, lock it into today's plan, and watch the week's work add up."*
-- A primary **CTA button with an icon**: **"BROWSE WORKOUTS"**.
-  - It scrolls the user down to the `#library` section on the same page (an anchor link, not a route change).
-- A **banner/hero image** on the right side.
+---
 
+## 📂 Project Directory Structure
 
-### 2.1 Navbar behavior (see also section 1)
-- The "Plan" and "Saved" badge counters in the navbar both link to `/my-plan`.
-- The badge numbers reflect the number of items currently in **Today's Plan** and **Saved**.( See Requirements Below)
+```text
+fitlog/
+├── app/
+│   ├── layout.tsx             # Root layout with fonts, provider, navbar, footer
+│   ├── page.tsx               # Home page (Server Component)
+│   ├── loading.tsx            # Animated dumbbell & card skeleton loader
+│   ├── not-found.tsx          # Custom dark-themed 404 page
+│   ├── error.tsx              # Error boundary with retry action
+│   ├── globals.css            # Tailwind directives & dark gym styles
+│   ├── workout/
+│   │   └── [id]/
+│   │       └── page.tsx       # Dynamic Workout Detail page (Server Component)
+│   └── my-plan/
+│       └── page.tsx           # My Plan page (Server Component)
+├── components/
+│   ├── home/
+│   │   ├── HeroSection.tsx    # Server component: Hero title, banner, subtitle
+│   │   ├── HeroCtaButton.tsx  # Client component: Smooth scroll to #library
+│   │   ├── LibrarySection.tsx # Server component: Section container
+│   │   └── LibraryGrid.tsx    # Client component: Sort dropdown & search filter
+│   ├── layout/
+│   │   ├── Navbar.tsx         # Server component: Navbar layout
+│   │   ├── NavbarNavLinks.tsx # Client component: Active route link highlights
+│   │   ├── NavbarBadges.tsx   # Client component: Live Plan & Saved counters
+│   │   └── Footer.tsx         # Server component: Dark branded footer
+│   ├── plan/
+│   │   ├── PlanMetricsSummary.tsx # Client component: Live metrics row
+│   │   ├── PlanTabsAndList.tsx    # Client component: Plan vs Saved tabs
+│   │   └── PlanItemCard.tsx       # Client component: Mark Done & Remove actions
+│   ├── ui/
+│   │   └── ToastContainer.tsx # Client component: Animated toast alerts
+│   └── workout/
+│       ├── WorkoutCard.tsx    # Responsive workout card for grid
+│       └── WorkoutActionButtons.tsx # Client component: Add to plan / Save buttons
+├── context/
+│   └── PlanContext.tsx        # Global state with LocalStorage sync & toast system
+├── lib/
+│   └── api.ts                 # API fetch routines with fallback data resilience
+├── public/
+│   ├── banner.png             # Hero section banner visual
+│   └── logo.png               # FitLog brand icon
+├── types/
+│   └── workout.ts             # TypeScript definitions for Workout & Sort options
+├── next.config.ts             # Next.js config with remote image patterns
+├── tailwind.config.ts         # Tailwind config extended with DaisyUI & custom tokens
+├── postcss.config.mjs         # PostCSS config
+├── tsconfig.json              # TypeScript compiler configuration
+└── package.json               # Dependencies & build scripts
+```
 
+---
 
---- 
+## 🏃 Local Development & Installation
 
-### 3. ⚖️ The Library Section (Home Page)
-- Heading: **"THE LIBRARY"** with subtitle **"Twelve lifts covering every major muscle group."**
-- Display all workouts from the API's data as cards in a **3x4 grid on large screens** (like the design). Must be responsive.
-- Each card must show:
-  - 📷 Illustration/image
-  - 🏷️ Category tag pills (e.g. `CHEST`, `ARMS`)
-  - 📛 Workout name (e.g. "BARBELL BENCH PRESS")
-  - 🖇️ Equipment line (e.g. "Barbell, Bench")
-  - 🔴 Stats row with icons: duration (`25 min`), calories (`180 kcal`), rating (`4.8`)
-- 🧭 Clicking a card navigates the user to that workout's **Detail Page**.
+1. **Clone or Extract the Project:**
+   ```bash
+   cd fitlog
+   ```
 
---- 
+2. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
 
-### 4. Workout Details Page — Layout (two-column, follow the design)
-**Left Side — Visual/Media:**
-- A large image/illustration of the workout fills the column.
+3. **Run the Development Server:**
+   ```bash
+   npm run dev
+   ```
 
-**Right Side — sections:**
-- Title: "BARBELL BENCH PRESS"
-- Subtitle/description: *"A compound press that builds chest thickness, triceps, and pressing power from a stable bench."*
-- Category tags: `Chest`, `Arms`
-- **Key Specs table/panel** with label + value rows:
-  - EQUIPMENT / DIFFICULTY / SETS / REPS / DURATION / CALORIES / RATING
-  (e.g. Barbell, Bench / Intermediate / 4 / 6-8 / 25 min / 180 kcal / 4.8)
-- **INSTRUCTIONS** section: ordered list of 4 steps (number + text)
-- **Call-to-action buttons:**
-  - Primary button: **"Add to today's plan"** (with icon)
-  - Secondary button: **"Save for later"** (with icon)
+4. **Open in Browser:**
+   Visit [http://localhost:3000](http://localhost:3000).
 
-### 5. Details Page — Button Functionality
-- Clicking **"Add to today's plan"**:
-  - Adds the workout to the **Today's Plan** tab on the My Plan page.
-  - Increments the "Plan" badge counter in the navbar.
-  - Shows a **toast notification** (e.g. "Added to today's plan").
-- Clicking **"Save for later"**:
-  - Adds the workout to the **Saved** tab on the My Plan page.
-  - Increments the "Saved" badge counter in the navbar.
-  - Shows a **toast notification**.
-- On the **My Plan** page, each planned workout card has:
-  - **"View Details"** button → opens the workout detail page.
+5. **Build for Production:**
+   ```bash
+   npm run build
+   npm run start
+   ```
 
-### 6. My Plan Page (`/my-plan`) — the "log" page
-Follow the live site + design exactly:
-- Title: **"MY PLAN"**, subtitle: *"Cap of five lifts for today. Finish them, then load more."*
-- **Metrics Summary row** (3 stat cards): `Exercises`, `Minutes`, `Calories` — start at 0 and update live as items are added/removed from the plan.
-- **Tabs**: `Today's Plan` / `Saved` (active tab highlighted).
-- **Loading state**: show "Loading workouts…" while fetching before the list renders.
-- **Workout cards list**: each entry shows thumbnail, title (e.g. "RUSSIAN TWIST"), equipment (e.g. "Medicine Ball"), and a stats row with duration / calories / rating icons + action buttons (View Details / Mark as Done / X remove).
-- **Empty state** (when the list is empty): "NOTHING HERE YET", text *"Browse the library and add a lift to get today moving."*, and a CTA button **"Go to workouts"** (links back to `/`).
+---
 
-### 7. Footer
-- Match the Figma design: dark footer.
-- **Left**: brand logo icon + **FITLOG**.
-- **Right**: copyright line: *"© 2026 FitLog — Workout Library. Train hard, log honest."*
+## 🌐 Deployment Guidelines
 
-### 8. Responsive Design
-- The entire website must work correctly on mobile, tablet, and desktop screen sizes (grid collapses correctly, navbar stays usable, hero stacks, etc.).
+This project is fully optimized for **Vercel**, **Netlify**, or **Cloudflare Pages**:
+- **Framework Preset:** Next.js
+- **Build Command:** `npm run build`
+- **Output Directory:** `.next`
+- All static pages and dynamic routes (`/workout/[id]`) are prerendered and statically optimized, guaranteeing high performance and zero reload 404 errors.
 
---- 
+---
 
-#	Requirement
-- Add a 404 Page for any unknown/invalid route
-- Show a loading animation while the exercise data is being fetched on the Home page
-- Show a relevant toast notification when the detail's page button.
-- Make sure reloading any page after deployment does not cause an error
-
---- 
-
-# Challenge Requirements — 10 Marks
-
-
-### C1. - **Sort dropdown**: 
-"Sort By" → options `Duration`, `Calories`, `Rating` (default `Duration`, with chevron icon); it re-sorts the current list.
-
-### C2. GitHub README
-- Add a well-designed `README.md` that includes:
-  - Project name
-  - Short description
-  - Technologies used
-  - 5 key features of the project
-
-### C3. - On the **My Plan** page, each planned workout card has:
-  - **"Mark as Done"** button (with check icon) → marks the workout done, shows a toast.
-  - **Remove (X)** button → removes the workout, shows a toast.
-
---- 
-
-## Optional (No Marks — Highly Recommended)
-- Persist the plan/saved data in `localStorage` so it survives a page reload.
-- Search the My Plan / library entries by workout name or tag.
-- Disable "Add to today's plan" when the plan already contains 5 lifts (the cap mentioned in the subtitle).
-### 🛠️ Technologies to Use
-Technology	Purpose
-- Next.js	Build the UI
-- App router(Next.js) +	Handle page navigation
-- Tailwind CSS + Any component library	Styling and responsiveness
-
-### 🚀 Deployment
-Deploy your project on Vercel, Netlify, Cloudflare Pages, or anywhere else before submitting.
-
-## 📬 Submission
-Fill in both links before submitting:
-
-- Live Link:
-- GitHub Repository Link:
+© 2026 FitLog — Workout Library. Train hard, log honest.
